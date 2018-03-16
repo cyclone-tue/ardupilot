@@ -96,3 +96,8 @@ GRTAGS
 GTAGS
 config.mk
 *.apj
+docs/ArduCopter
+docs/libraries
+.vs/
+Tools/SerialProxy
+modules/PX4Firmware
