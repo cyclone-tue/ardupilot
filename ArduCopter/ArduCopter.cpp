@@ -191,7 +191,6 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #endif
 };
 
-
 void Copter::setup()
 {
     // Load the default values of variables listed in var_info[]s
@@ -260,6 +259,8 @@ void Copter::fast_loop()
     }
 }
 
+
+
 // rc_loops - reads user input from transmitter/receiver
 // called at 100hz
 void Copter::rc_loop()
@@ -269,6 +270,8 @@ void Copter::rc_loop()
     read_radio();
     read_control_switch();
 }
+
+
 
 // throttle_loop - should be run at 50 hz
 // ---------------------------
@@ -292,6 +295,7 @@ void Copter::throttle_loop()
     update_ground_effect_detector();
 }
 
+
 // update_batt_compass - read battery and compass
 // should be called at 10hz
 void Copter::update_batt_compass(void)
@@ -310,6 +314,8 @@ void Copter::update_batt_compass(void)
         }
     }
 }
+
+
 
 // Full rate logging of attitude, rate and pid loops
 // should be run at 400hz

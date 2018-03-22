@@ -168,7 +168,11 @@
 #include <SITL/SITL.h>
 #endif
 
-
+/**
+ * \brief Base class for the copter.
+ *
+ * Overwrite methods in this class to change the top level behaviour of the quadcopter.
+ */
 class Copter : public AP_HAL::HAL::Callbacks {
 public:
     friend class GCS_MAVLINK_Copter;
@@ -186,7 +190,17 @@ public:
     Copter(void);
 
     // HAL::Callbacks implementation.
+    /**
+     * \brief This function is run at startup.
+     *
+     * This function is run once at startup of the drone. Override this function to run code used in setup which is only run once.
+     */
     void setup() override;
+    /**
+     * \brief This function is called as many times as possible.
+     *
+     * This function is the main loop of the controller. It is called as fast as possible. Override this function to update run code in an infinite loop.
+     */
     void loop() override;
 
 private:
@@ -196,10 +210,18 @@ private:
     AP_Vehicle::MultiCopter aparm;
 
     // Global parameters are all contained within the 'g' class.
+    /**
+     * \brief Global parameters are contained within this class.
+     */
     Parameters g;
     ParametersG2 g2;
 
     // main loop scheduler
+    /**
+     * \brief Main loop scheduler.
+     *
+     * Add function callbacks to this schedular to add them to the multithreading code.
+     */
     AP_Scheduler scheduler{FUNCTOR_BIND_MEMBER(&Copter::fast_loop, void)};
 
     // AP_Notify instance
@@ -209,23 +231,50 @@ private:
     uint8_t command_ack_counter;
 
     // primary input control channels
+    /**
+     * \brief primary Input controll channels are #channel_roll, #channel_pitch, #channel_throttle and #channel_yaw.
+     */
     RC_Channel *channel_roll;
     RC_Channel *channel_pitch;
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
 
     // Dataflash
+    /**
+     * \brief Main reference to the flash data.
+     */
     DataFlash_Class DataFlash;
 
+    /**
+     * \brief Reference to the GPS library provided by the AP_HAL.
+     */
     AP_GPS gps;
 
     // flight modes convenience array
+    /**
+     * \brief Array of flightmodes.
+     */
     AP_Int8 *flight_modes;
 
+    /**
+     * \brief Reference to barometer library.
+     */
     AP_Baro barometer;
+    /**
+     * \brief Reference to compass library
+     */
     Compass compass;
+    /**
+     * \brief Reference to internal sensors.
+     *
+     * This reference is used to retrieve sensor data from the HAL. The information is only available after AP_InertialSensor::update() is called.
+     *
+     */
     AP_InertialSensor ins;
 
+    /**
+     * \brief Reference to the RangeFinder object.
+     */
     RangeFinder rangefinder{serial_manager, ROTATION_PITCH_270};
     struct {
         bool enabled:1;
@@ -236,9 +285,15 @@ private:
         int8_t glitch_count;
     } rangefinder_state = { false, false, 0, 0 };
 
+    /**
+     * \brief Reference to the AP_RMP sensor.
+     */
     AP_RPM rpm_sensor;
 
     // Inertial Navigation EKF
+    /**
+     * \brief Internal navigation EKF's.
+     */
     NavEKF2 EKF2{&ahrs, rangefinder};
     NavEKF3 EKF3{&ahrs, rangefinder};
     AP_AHRS_NavEKF ahrs{ins, EKF2, EKF3, AP_AHRS_NavEKF::FLAG_ALWAYS_USE_EKF};
@@ -283,6 +338,9 @@ private:
     uint32_t ekfYawReset_ms;
     int8_t ekf_primary_core;
 
+    /**
+     * \brief Reference to the serial manager library.
+     */
     AP_SerialManager serial_manager;
 
     // GCS selection
@@ -327,13 +385,24 @@ private:
         uint32_t value;
     } ap_t;
 
+    /**
+     * \brief Globals reference.
+     *
+     * Look at the code for an explanation of all variables contained.
+     */
     ap_t ap;
 
     // This is the state of the flight control system
     // There are multiple states defined such as STABILIZE, ACRO,
+    /**
+     * \brief Reference to the current state of the flight control system.
+     */
     control_mode_t control_mode;
     mode_reason_t control_mode_reason = MODE_REASON_UNKNOWN;
 
+    /**
+     * \brief Previous control state.
+     */
     control_mode_t prev_control_mode;
     mode_reason_t prev_control_mode_reason = MODE_REASON_UNKNOWN;
 
@@ -350,6 +419,9 @@ private:
         float alt_delta;
         uint32_t start_ms;
     } takeoff_state_t;
+    /**
+     * \brief Reference state for the takeoff.
+     */
     takeoff_state_t takeoff_state;
 
     // altitude below which we do no navigation in auto takeoff
@@ -402,7 +474,15 @@ private:
  #define MOTOR_CLASS AP_MotorsMulticopter
 #endif
 
+    /**
+     * \brief Reference to either AP_MotorsHeli or AP_MotorsMulticopter
+     *
+     * Reference is defined by a macro depending on the frame config.
+     */
     MOTOR_CLASS *motors;
+    /**
+     * \brief Motor variable information.
+     */
     const struct AP_Param::GroupInfo *motors_var_info;
 
     // GPS variables
@@ -474,12 +554,20 @@ private:
     // turn rate (in cds) when auto_yaw_mode is set to AUTO_YAW_RATE
     float auto_yaw_rate_cds;
 
+    /**
+     * \brief Global time step size.
+     *
+     * Used as an integration constant for the gyros. This variable is updated in Copter::loop().
+     */
     // IMU variables
     // Integration time (in seconds) for the gyros (DCM algorithm)
     // Updated with the fast loop
     float G_Dt;
 
     // Inertial Navigation
+    /**
+     * \brief Internal navigation reference.
+     */
     AP_InertialNav_NavEKF inertial_nav;
 
     // Attitude, Position and Waypoint navigation objects
@@ -489,6 +577,12 @@ private:
 #else
     #define AC_AttitudeControl_t AC_AttitudeControl_Multi
 #endif
+
+    /**
+     * \brief Reference to the altitude controller.
+     *
+     * The altitude controller is a low lovel controller. It only requires IMU data.
+     */
     AC_AttitudeControl_t *attitude_control;
     AC_PosControl *pos_control;
     AC_WPNav *wp_nav;
@@ -629,31 +723,110 @@ private:
     static const struct LogStructure log_structure[];
 
     // AP_State.cpp
+    /**
+     * \brief Set the home state of the drone.
+     */
     void set_home_state(enum HomeState new_home_state);
+    /**
+     * \returns if the home is set.
+     */
     bool home_is_set();
     void set_auto_armed(bool b);
     void set_simple_mode(uint8_t b);
+    /**
+     * \brief Engage or disengage the radio failsafe.
+     */
     void set_failsafe_radio(bool b);
+    /**
+     * \brief Engage or disengage the batery failsafe.
+     */
     void set_failsafe_battery(bool b);
+    /**
+     * \brief Engage or disengage the gcs failsage.
+     */
     void set_failsafe_gcs(bool b);
     void update_using_interlock();
+    /**
+     * \brief Engage or disengage motor emergency stop.
+     */
     void set_motor_emergency_stop(bool b);
 
     // ArduCopter.cpp
+    /**
+     *
+     * \brief The main control loop.
+     *
+     * The main control loop is executed at 400Hz. Edit this function to alter the main functions of the controller.
+     */
     void fast_loop();
+    /**
+     * \brief read user input from transmitter/receiver.
+     *
+     * The function is called at 100Hz.
+     */
     void rc_loop();
+    /**
+     * \brief Update throttle loop functionality.
+     *
+     * This function is run at 50Hz.
+     */
     void throttle_loop();
+    /**
+     * \brief This loop updates the battery and compass measurements
+     *
+     * The loop is run at 10Hz.
+     */
     void update_batt_compass(void);
+    /**
+     * \brief This loop logs attitude data if MASK_LOG_ATTIDUE_FAST is set.
+     *
+     * This loop is run at 400Hz.
+     */
     void fourhundred_hz_logging();
+    /**
+     * \brief This loop logs data at 10Hz.
+     *
+     * The loop does not log data that is logged at a higher frequency.
+     */
     void ten_hz_logging_loop();
+    /**
+         * \brief This loop logs data at 25Hz.
+         *
+         * The loop does not log data that is logged at a higher frequency.
+         */
     void twentyfive_hz_logging();
+    /**
+         * \brief This loop logs data at 3.3Hz.
+         *
+         * The loop does not log data that is logged at a higher frequency.
+         */
     void three_hz_loop();
+    /**
+         * \brief This loop logs data at 1Hz.
+         *
+         * The loop does not log data that is logged at a higher frequency.
+         */
     void one_hz_loop();
+    /**
+     * \brief Update the gps location and maybe write it to storage.
+     *
+     * If necessary the system clock is updated. If there is a camera is on the drone. The image is updated in this loop. This loop is run at 50Hz.
+     */
     void update_GPS(void);
+
     void init_simple_bearing();
     void update_simple_mode(void);
     void update_super_simple_bearing(bool force_update);
+    /**
+     * \brief Read the remaining IMU data and update ekf.
+     *
+     * Some IMU data might have to be read depending on the HIL_MODE. Afterwards AP_AHRS_NavEKF::update() is called to update the ekf.
+     * This is a heavy calculation.
+     */
     void read_AHRS(void);
+    /**
+     * \brief Read baro and rangefinder altitide at 10Hz.
+     */
     void update_altitude();
 
     // Attitude.cpp
@@ -662,7 +835,15 @@ private:
     float get_pilot_desired_yaw_rate(int16_t stick_angle);
     float get_roi_yaw();
     float get_look_ahead_yaw();
+    /**
+     * \brief Update estimated required throttle to hover.
+     *
+     * Updated at 100Hz.
+     */
     void update_throttle_hover();
+    /**
+     * \brief tells controller takeoff is hapening, so integrator terms can be cleared.
+     */
     void set_throttle_takeoff();
     float get_pilot_desired_throttle(int16_t throttle_control, float thr_mid = 0.0f);
     float get_pilot_desired_climb_rate(float throttle_control);
@@ -685,12 +866,45 @@ private:
     void init_capabilities(void);
 
     // commands.cpp
+    /**
+     * \brief Check if the hom state has to be updated.
+     *
+     * Sets the home state if it is currently not set. Does this in flight or on the ground based on GPS data or ekf data.
+     */
     void update_home_from_EKF();
+    /**
+     * \brief set the home location to the current location in flight.
+     *
+     * Use the GPS data for horizontal location and ekf data for vertical location.
+     */
     void set_home_to_current_location_inflight();
+    /**
+     * \brief set location to current location.
+     *
+     * Set teh home location to the current location based on GPS data.
+     */
     bool set_home_to_current_location(bool lock);
+    /**
+     * \brief Set the home location.
+     */
     bool set_home(const Location& loc, bool lock);
+    /**
+     * \brief Set ekf origin location.
+     *
+     * Should only be used when there is no GPS.
+     */
     void set_ekf_origin(const Location& loc);
+    /**
+     * \brief Check if an location is to far from the home location.
+     *
+     * The distance is compared to the EKF_ORIGIN_MAX_DIST_M variable.
+     */
     bool far_from_EKF_origin(const Location& loc);
+    /**
+     * \brief update the system time based on GPS data.
+     *
+     * Only updates the system time if the system time is not set.
+     */
     void set_system_time_from_GPS();
 
     // compassmot.cpp
@@ -700,31 +914,74 @@ private:
     void delay(uint32_t ms);
 
     // crash_check.cpp
+    /**
+     * \brief Check if a crash was detected. Turns off motors if this is the case.
+     *
+     * Crashes are detected if the angles are 20 degrees outside of set limits.
+     */
     void crash_check();
+    /**
+     * \brief deploy parachute and disable motors in case of severe loss of control.
+     */
     void parachute_check();
+    /**
+     * \brief Release parachute and disable motors.
+     */
     void parachute_release();
     void parachute_manual_release();
 
     // ekf_check.cpp
+    /**
+     * \brief Trigger failsafe if ekf variances are outside tolerance.
+     *
+     * Called at 10Hz.
+     */
     void ekf_check();
     bool ekf_check_position_problem();
     bool ekf_over_threshold();
+    /**
+     * \brief Event for ekf failsafe deploying.
+     */
     void failsafe_ekf_event();
+    /**
+     * \brief Event when failsafe is disabled.
+     */
     void failsafe_ekf_off_event(void);
     void check_ekf_reset();
 
     // esc_calibration.cpp
     void esc_calibration_startup_check();
     void esc_calibration_passthrough();
+    /**
+     * \brief Calibrate esc automatically with timers instead of pilot input.
+     */
     void esc_calibration_auto();
     void esc_calibration_notify();
 
     // events.cpp
+    /**
+     * \brief Failsafe on event in case of radio loss.
+     */
     void failsafe_radio_on_event();
+    /**
+     * \brief Failsafe off event in case of radio connection.
+     */
     void failsafe_radio_off_event();
+    /**
+     * \brief Failsafe event on battery voltage low.
+     */
     void failsafe_battery_event(void);
+    /**
+     * \brief Failsafe on event in case of ground control failure.
+     */
     void failsafe_gcs_check();
+    /**
+     * \brief Failsafe off event in case of ground control reconnection.
+     */
     void failsafe_gcs_off_event(void);
+    /**
+     * \brief Failsafe event if terrain data is missing for more than a few seconds.
+     */
     void failsafe_terrain_check();
     void failsafe_terrain_set_status(bool data_ok);
     void failsafe_terrain_on_event();
@@ -736,7 +993,13 @@ private:
     void update_events();
 
     // failsafe.cpp
+    /**
+     * \brief Enable failsafe.
+     */
     void failsafe_enable();
+    /**
+     * \brief Disable failsafe.
+     */
     void failsafe_disable();
 #if ADVANCED_FAILSAFE == ENABLED
     void afs_fs_check(void);
@@ -770,9 +1033,19 @@ private:
     void heli_update_rotor_speed_targets();
 
     // inertia.cpp
+    /**
+     * \brief Read inertia from the sensors.
+     *
+     * Read the inertia from the accelerometers.
+     */
     void read_inertia();
 
     // landing_detector.cpp
+    /**
+     * \brief Update the landing/crashing detectors.
+     *
+     * Runs the update code for the landing and crashing detectors.
+     */
     void update_land_and_crash_detectors();
     void update_land_detector();
     void set_land_complete(bool b);
@@ -800,6 +1073,9 @@ private:
     void Log_Write_Baro(void);
     void Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, int16_t control_in, int16_t tune_low, int16_t tune_high);
     void Log_Write_Home_And_Origin();
+    /**
+     * \brief Log when sensor data becomes unhealthy.
+     */
     void Log_Sensor_Health();
 #if FRAME_CONFIG == HELI_FRAME
     void Log_Write_Heli(void);
@@ -811,7 +1087,18 @@ private:
     void log_init(void);
 
     // mode.cpp
+    /**
+     * \brief Set control mode.
+     *
+     * \param mode The new control mode.
+     * \param reason The reason to switch.
+     */
     bool set_mode(control_mode_t mode, mode_reason_t reason);
+    /**
+     * \brief run the attitude controllers.
+     *
+     * Calls the attitude controller depending on the Mode.
+     */
     void update_flight_mode();
     void notify_flight_mode();
 
@@ -841,6 +1128,9 @@ private:
     void auto_disarm_check();
     bool init_arm_motors(bool arming_from_gcs);
     void init_disarm_motors();
+    /**
+     * \brief Drive the motors with the calculated outputs.
+     */
     void motors_output();
     void lost_vehicle_check();
 
@@ -868,6 +1158,9 @@ private:
     void init_rc_in();
     void init_rc_out();
     void enable_motor_output();
+    /**
+     * \brief Read and process radio inputs.
+     */
     void read_radio();
     void set_throttle_and_failsafe(uint16_t throttle_pwm);
     void set_throttle_zero_flag(int16_t throttle_control);
@@ -875,9 +1168,23 @@ private:
     int16_t get_throttle_mid(void);
 
     // sensors.cpp
+    /**
+     * \brief Initialize barometer
+     *
+     * \param full_calibration bool determining if calibration has to be redone.
+     */
     void init_barometer(bool full_calibration);
+    /**
+     * \brief Read barometer values.
+     */
     void read_barometer(void);
+    /**
+     * \brief Initialize rangefinder.
+     */
     void init_rangefinder(void);
+    /**
+     * \brief Read rangefinder sensor values.
+     */
     void read_rangefinder(void);
     bool rangefinder_alt_ok();
     void rpm_update();
@@ -942,8 +1249,17 @@ private:
     void auto_takeoff_attitude_run(float target_yaw_rate);
 
     // terrain.cpp
+    /**
+     * \brief Update terrain if it is available.
+     */
     void terrain_update();
+    /**
+     * \brief Log terrain data.
+     */
     void terrain_logging();
+    /**
+     * \returns If terrain data should be used for altitude control.
+     */
     bool terrain_use();
 
     // tuning.cpp
@@ -1021,7 +1337,19 @@ private:
 #endif
 
     // mode.cpp
+    /**
+     * \brief Get the mode object from enum value.
+     *
+     * \returns Mode which represents the mode object connected to the enum.
+     */
     Mode *mode_from_mode_num(const uint8_t mode);
+    /**
+     * \brief Exit the current fligtmode and enter new flightmode.
+     *
+     * Performs cleanup for the old flighmode.
+     * \param old_flightmode The old Mode reference.
+     * \param new_flightmode The new Mode to enter.
+     */
     void exit_mode(Mode *&old_flightmode, Mode *&new_flightmode);
 
 public:

@@ -78,6 +78,11 @@ public:
     // update - give mount opportunity to update servos.  should be called at 10hz or higher
     void update();
 
+    /**
+     * \brief Fast loop to update gimbals.
+     *
+     * Gimbals that need INS data at full rate can use this loop. It is called at 400Hz.
+     */
     // used for gimbals that need to read INS data at full rate
     void update_fast();
 

@@ -8,14 +8,23 @@
 
 // pre-define ModeRTL so Auto can appear higher in this file
 class ModeRTL;
-
+/**
+ * \Brief Converts pilot inputs to desired state.
+ *
+ * Converts pilot inputs to attitude or position.
+ * Afterwards it calls the corresponding attidure and position controller.
+ */
 class Mode
 {
 public:
 
     // Constructor
     Mode();
-
+    /**
+     * \brief Enter the flightmode.
+     *
+     * \return Boolean representing if the mode was entered correctly. True if successful, false if we failed to enter.
+     */
     // enter this mode, returns false if we failed to enter
     bool enter();
 

@@ -37,6 +37,12 @@ class AP_AHRS;
  */
 class DataFlash_Class;
 
+/**
+ * \brief Abstraction for the gyro and accel measurements.
+ *
+ * The abstraction is implemented by the HAL and returns sensor data. The measurements are calibrated to SI units.
+ */
+
 /* AP_InertialSensor is an abstraction for gyro and accel measurements
  * which are correctly aligned to the body axes and scaled to SI units.
  *

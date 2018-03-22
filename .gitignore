@@ -100,4 +100,4 @@ docs/ArduCopter
 docs/libraries
 .vs/
 Tools/SerialProxy
-modules/PX4Firmware
+modules/PX4Firmware/*
